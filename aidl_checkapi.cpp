@@ -22,7 +22,6 @@
 
 #include <android-base/result.h>
 #include <android-base/strings.h>
-#include <gtest/gtest.h>
 
 #include "aidl_dumpapi.h"
 #include "aidl_language.h"
@@ -50,16 +49,16 @@ static std::string Dump(const AidlDefinedType& type) {
   return code;
 }
 
-// Uses each type's Dump() and GTest utility(EqHelper).
 static bool CheckEquality(const AidlDefinedType& older, const AidlDefinedType& newer) {
-  using testing::internal::EqHelper;
   auto older_file = older.GetLocation().GetFile();
   auto newer_file = newer.GetLocation().GetFile();
-  auto result = EqHelper::Compare(older_file.data(), newer_file.data(), Dump(older), Dump(newer));
-  if (!result) {
-    AIDL_ERROR(newer) << result.failure_message();
+  auto older_dump = Dump(older);
+  auto newer_dump = Dump(newer);
+  if (older_dump != newer_dump) {
+    AIDL_ERROR(newer) << "API difference between " << older_file << " and " << newer_file;
+    return false;
   }
-  return result;
+  return true;
 }
 
 static vector<string> get_strict_annotations(const AidlAnnotatable& node) {
